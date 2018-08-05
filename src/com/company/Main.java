@@ -1,7 +1,7 @@
 package com.company;
 
-import java.util.Optional;
-import java.util.Vector;
+import java.net.InetAddress;
+import java.util.*;
 
 class Segment {
     int offset;
@@ -22,16 +22,25 @@ public class Main {
     static private final int SEGMENTS_COUNT = 10000;
     static private final int DURATION = 100;
 
-    static private Optional<Integer> getValue(Vector<Segment> segments, int index) {
+    private static Optional<Integer> getValue(Vector<Segment> segments, int index) {
         Optional<Segment> segment = segments.stream().filter(item -> item.offset + item.duration - 1 >= index).findFirst();
         return segment.map(s -> s.value);
     }
 
-    static private int calculateTotal(Vector<Segment> segments, int status) {
+    static private Optional<Integer> getValue2(Vector<Segment> segments, int index) {
+        for (Segment item: segments) {
+            if (item.offset + item.duration - 1 >= index) {
+                return Optional.of(item.value);
+            }
+        }
+        return Optional.empty();
+    }
+
+    static int calculateTotal(Vector<Segment> segments, int status) {
         int result = 0;
         for (int i = 0; i < SEGMENTS_COUNT * DURATION; i++) {
-            Optional<Integer> v = Main.getValue(segments, i);
-            if (v.isPresent() && v.get() == WORKED_STATUS) {
+            Optional<Integer> v = getValue2(segments, i);
+            if (v.isPresent() && v.get() == status) {
                 result++;
             }
         }
@@ -51,9 +60,9 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        Vector<Segment> segments = Main.initSegments();
+        Vector<Segment> segments = initSegments();
         long start = System.currentTimeMillis();
-        int total = Main.calculateTotal(segments, WORKED_STATUS);
+        int total = calculateTotal(segments, WORKED_STATUS);
         long elapsed = System.currentTimeMillis() - start;
         System.out.println("total: " + total);
         System.out.println("time duration in msec: " + elapsed);
